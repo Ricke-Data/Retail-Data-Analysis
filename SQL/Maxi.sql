@@ -140,12 +140,25 @@ v_sum_price number := 0;
 v_total_price number;
 v_promotion_id int;
 v_dt timestamp;
+v_store varchar2(20);
 begin
-  insert into receipt values (receipt_seq.nextval,p_store_id,p_employee_id,systimestamp,p_payment_id,null,systimestamp)
-  returning receipt_id into v_receipt_id;
-  
-  select date_time into v_dt from receipt where receipt_id = v_receipt_id;
-  
+  select store_name into v_store from store where p_store_id = store_id;
+
+  v_dt := systimestamp;
+
+  if to_char(v_dt,'dy') not in ('sat','sun') then
+    insert into receipt values (receipt_seq.nextval,p_store_id,p_employee_id,v_dt,p_payment_id,null,v_dt)
+    returning receipt_id into v_receipt_id;
+  else
+    if v_store like initcap('mega%') or v_store = initcap('veliki%') then
+    insert into receipt values (receipt_seq.nextval,p_store_id,p_employee_id,v_dt,p_payment_id,null,v_dt)
+    returning receipt_id into v_receipt_id;
+    else
+      dbms_output.put_line('Samo Veliki Maxi i Mega Maxi rade vikendom!');
+      return;
+    end if;
+  end if;
+
   for i in 1..p_items.count loop
     select price into v_price from product where product_id = p_items(i).product_id;
 
@@ -162,7 +175,7 @@ begin
       when others then
         dbms_output.put_line('Desila se iznenadna greska prilikom racunanja popusta!');
     end;
-    
+
     insert into receipt_item values (receipt_item_seq.nextval,v_receipt_id,p_items(i).product_id,
     p_items(i).quantity,v_price * p_items(i).quantity,v_promotion_id,v_total_price,v_dt);
     select product_name into v_product from product where product_id = p_items(i).product_id;
