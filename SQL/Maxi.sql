@@ -150,7 +150,7 @@ begin
     insert into receipt values (receipt_seq.nextval,p_store_id,p_employee_id,v_dt,p_payment_id,null,v_dt)
     returning receipt_id into v_receipt_id;
   else
-    if v_store like initcap('mega%') or v_store = initcap('veliki%') then
+    if v_store like initcap('mega%') or v_store like initcap('veliki%') then
     insert into receipt values (receipt_seq.nextval,p_store_id,p_employee_id,v_dt,p_payment_id,null,v_dt)
     returning receipt_id into v_receipt_id;
     else
