@@ -346,6 +346,26 @@ for each row
 begin
   :new.last_updated := systimestamp;
 end;
+--triger za povlacenje receipt iz receipt_item
+create or replace trigger receipt_delete
+after delete on receipt
+for each row
+begin
+  delete from receipt_item where receipt_id = :old.receipt_id;
+end;
+
+--sekvenca za promociju
+create sequence promotion_seq start with 11 increment by 1;
+--procedura za unos promocije
+create or replace procedure add_promotion (p_name varchar2, p_percent int, p_start timestamp, p_end timestamp)
+is
+begin
+  insert into promotion values (promotion_seq.nextval,p_name,p_percent,p_start,p_end,systimestamp);
+  dbms_output.put_line('Uspesno ste uneli promociju '||p_name||' u trajanju od '||p_start||' do '||p_end||'.');
+end;
+--unos promocije
+exec add_promotion('Stark',20,systimestamp,systimestamp + 7);
+exec add_promotion('Jaffa',35,systimestamp,systimestamp + 7);
 
 --Provera podataka
 select dd.date_id,r.receipt_id,ds.dim_store_id,dc.dim_cashier_id, dp.dim_product_id,
